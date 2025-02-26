@@ -15,16 +15,14 @@ const authStore = useAuthStore()
         <RouterLink to="/training"><h1>Обучение</h1></RouterLink>
         <RouterLink to="/exam"><h1>Экзамен</h1></RouterLink>
         <RouterLink to="/marathon"><h1>Марафон</h1></RouterLink>
-        <RouterLink to="/statistics" v-if="authStore.isAuthenticated"
-          ><h1>Статистика</h1></RouterLink
-        >
+        <!-- <RouterLink to="/statistics" v-if="authStore.isAuthenticated"
+          ><h1>Статистика</h1></RouterLink >-->
         <RouterLink to="/profile" v-if="authStore.isAuthenticated"><h1>Профиль</h1></RouterLink>
         <RouterLink to="/authorization" v-if="!authStore.isAuthenticated"
-          ><h1>Авторизация</h1></RouterLink
+          ><h1>Войти в аккаунт</h1></RouterLink
         >
-        <RouterLink to="/registration" v-if="!authStore.isAuthenticated"
-          ><h1>Регистрация</h1></RouterLink
-        >
+        <!-- <RouterLink to="/registration" v-if="!authStore.isAuthenticated"
+          ><h1>Регистрация</h1></RouterLink>   Возможно будет под авторизационной формой-->
       </nav>
     </div>
   </header>

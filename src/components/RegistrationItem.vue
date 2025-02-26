@@ -19,7 +19,7 @@ const replayPassword = ref('')
 
 const error = ref([false, ''])
 
-const handleSubmit = (event) => {
+const handleSubmit = (event: Event) => {
   event.preventDefault()
   if ((email.value == '', login.value == '' || password.value == '', replayPassword.value == '')) {
     error.value[0] = true

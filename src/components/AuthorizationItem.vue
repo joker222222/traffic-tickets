@@ -17,7 +17,7 @@ const password = ref('')
 
 const error = ref([false, ''])
 
-const handleSubmit = (event) => {
+const handleSubmit = (event: Event) => {
   event.preventDefault()
   if (login.value == '' || password.value == '') {
     error.value[0] = true

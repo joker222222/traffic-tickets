@@ -8,7 +8,15 @@ import { useAuthStore } from '../stores/authStore'
 
 const authStore = useAuthStore()
 
-const newsArray = ref([
+interface NewsItem {
+  img: string
+  text: string
+  likes: number
+  dislikes: number
+  userReaction: 'like' | 'dislike' | null
+}
+
+const newsArray = ref<NewsItem[]>([
   {
     img: '',
     text: `Глава АвтоВАЗа Максим Соколов назвал условие возвращения Renault в Россию⚡️
@@ -36,7 +44,7 @@ const newsArray = ref([
   },
 ])
 
-const toggleLike = (index) => {
+const toggleLike = (index: number) => {
   if (!authStore.isAuthenticated) {
     console.log('Вы должны быть зарегистрированы чтобы поставить лайк')
     return
@@ -56,7 +64,7 @@ const toggleLike = (index) => {
   }
 }
 
-const toggleDislike = (index) => {
+const toggleDislike = (index: number) => {
   if (!authStore.isAuthenticated) {
     console.log('Вы должны быть зарегистрированы чтобы поставить дизлайк')
     return
@@ -137,6 +145,7 @@ ul {
 .text-news {
   font-size: 18px;
   font-weight: bold;
+  text-align: justify;
   color: #333; /* Цвет текста */
   margin: 0; /* Убираем отступы у заголовка */
   word-wrap: break-word; /* Переносит длинные слова на новую строку */
@@ -146,8 +155,8 @@ ul {
 
 .number-of-likes {
   position: absolute;
-  bottom: 15px;
-  left: 45px;
+  bottom: 10px;
+  left: 35px;
   display: flex;
   gap: 10px;
 }
