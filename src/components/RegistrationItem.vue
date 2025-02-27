@@ -61,7 +61,7 @@ const handleSubmit = (event: Event) => {
           <input type="password" v-model="replayPassword" />
         </div>
         <div class="error">{{ error[0] === false ? '' : error[1] }}</div>
-        <button type="submit">Войти</button>
+        <button type="submit">Зарегистрироваться</button>
       </form>
     </div>
   </div>
@@ -74,6 +74,7 @@ const handleSubmit = (event: Event) => {
   align-items: center;
   margin-top: 50px;
   background-color: #f0f0f0; /* Фон для всей страницы */
+  font-size: 1.2rem;
 }
 
 .form-container {
@@ -99,12 +100,14 @@ form input {
 
 form button {
   width: 100%;
+  margin-top: 10px;
   padding: 10px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 1rem;
 }
 
 form button:hover {

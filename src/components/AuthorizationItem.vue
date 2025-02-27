@@ -32,6 +32,11 @@ const handleSubmit = (event: Event) => {
   login.value = ''
   password.value = ''
 }
+
+const handleClickRegistration = (event: Event) => {
+  event.preventDefault()
+  router.push('/Registration')
+}
 </script>
 
 <template>
@@ -49,6 +54,10 @@ const handleSubmit = (event: Event) => {
         <div class="error">{{ error[0] === false ? '' : error[1] }}</div>
         <button type="submit">Войти</button>
       </form>
+      <div class="no-account">
+        Еще нет аккаунта?
+        <a href="" class="link" v-on:click="handleClickRegistration">Зарегистрируйтесь!</a>
+      </div>
     </div>
   </div>
 </template>
@@ -60,6 +69,7 @@ const handleSubmit = (event: Event) => {
   align-items: center;
   margin-top: 50px;
   background-color: #f0f0f0; /* Фон для всей страницы */
+  font-size: 1.2rem;
 }
 
 .form-container {
@@ -85,12 +95,14 @@ form input {
 
 form button {
   width: 100%;
+  margin-top: 10px;
   padding: 10px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 1rem;
 }
 
 form button:hover {
@@ -100,5 +112,14 @@ form button:hover {
 .error {
   color: red;
   margin-bottom: 10px;
+}
+
+.no-account {
+  margin-top: 12px;
+}
+
+.link {
+  color: blue;
+  text-decoration: underline;
 }
 </style>

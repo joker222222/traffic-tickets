@@ -19,7 +19,7 @@ const authStore = useAuthStore()
           ><h1>Статистика</h1></RouterLink >-->
         <RouterLink to="/profile" v-if="authStore.isAuthenticated"><h1>Профиль</h1></RouterLink>
         <RouterLink to="/authorization" v-if="!authStore.isAuthenticated"
-          ><h1>Войти в аккаунт</h1></RouterLink
+          ><h1>Регистрация</h1></RouterLink
         >
         <!-- <RouterLink to="/registration" v-if="!authStore.isAuthenticated"
           ><h1>Регистрация</h1></RouterLink>   Возможно будет под авторизационной формой-->

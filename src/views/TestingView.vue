@@ -1,10 +1,11 @@
 <script setup lang="ts">
 // import TheWelcome from '../components/TheWelcome.vue'
+import TestingItem from '../components/TestingItem.vue'
 </script>
 
 <template>
   <div class="about">
-    <h1>Тут будет тестирование</h1>
+    <TestingItem />
   </div>
 </template>
 
