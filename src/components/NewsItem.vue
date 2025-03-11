@@ -14,6 +14,7 @@ interface NewsItem {
   likes: number
   dislikes: number
   userReaction: 'like' | 'dislike' | null
+  showLoginMessage?: boolean
 }
 
 const newsArray = ref<NewsItem[]>([
@@ -27,6 +28,7 @@ const newsArray = ref<NewsItem[]>([
     likes: 2,
     dislikes: 0,
     userReaction: null,
+    showLoginMessage: false,
   },
   {
     img: 'https://images.wallpaperscraft.com/image/single/lake_mountain_tree_36589_2650x1600.jpg',
@@ -34,6 +36,7 @@ const newsArray = ref<NewsItem[]>([
     likes: 3,
     dislikes: 0,
     userReaction: null,
+    showLoginMessage: false,
   },
   {
     img: 'https://i.pinimg.com/originals/36/76/99/36769945f37cb48d1cc24ba4dc724d94.jpg',
@@ -41,12 +44,21 @@ const newsArray = ref<NewsItem[]>([
     likes: 3,
     dislikes: 0,
     userReaction: null,
+    showLoginMessage: false,
   },
 ])
+
+const showLoginMessage = (index: number) => {
+  newsArray.value[index].showLoginMessage = true
+  setTimeout(() => {
+    newsArray.value[index].showLoginMessage = false
+  }, 3000)
+}
 
 const toggleLike = (index: number) => {
   if (!authStore.isAuthenticated) {
     console.log('Вы должны быть зарегистрированы чтобы поставить лайк')
+    showLoginMessage(index)
     return
   }
   const news = newsArray.value[index]
@@ -66,7 +78,8 @@ const toggleLike = (index: number) => {
 
 const toggleDislike = (index: number) => {
   if (!authStore.isAuthenticated) {
-    console.log('Вы должны быть зарегистрированы чтобы поставить дизлайк')
+    console.log('Вы должны быть зарегистрированы чтобы поставить дизлайк.')
+    showLoginMessage(index)
     return
   }
   const news = newsArray.value[index]
@@ -98,6 +111,9 @@ const toggleDislike = (index: number) => {
           <label class="dislikes" v-on:click="toggleDislike(index)"
             >{{ news.userReaction === 'dislike' ? '👎🏿' : '👎🏻' }}{{ news.dislikes }}</label
           >
+          <label class="dislikes" v-if="news.showLoginMessage"
+            >Вы должны быть зарегистрированы.</label
+          >
         </div>
       </li>
     </ul>
@@ -107,8 +123,8 @@ const toggleDislike = (index: number) => {
 <style scoped>
 .news-container {
   display: flex;
-  justify-content: center; /* Центрируем новости по горизонтали */
-  align-items: center; /* Центрируем новости по вертикали */
+  justify-content: center;
+  align-items: center;
   max-width: auto;
   margin-top: 50px;
 }
@@ -116,7 +132,7 @@ const toggleDislike = (index: number) => {
 ul {
   display: flex;
   flex-direction: column;
-  gap: 40px; /* расстояние между новостями */
+  gap: 40px;
   padding: 0;
   list-style: none;
 }
@@ -124,13 +140,13 @@ ul {
 .news-item {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Центрируем содержимое по горизонтали */
-  text-align: center; /* Центрируем текст */
-  background-color: #f9f9f9; /* Легкий фон */
+  align-items: center;
+  text-align: center;
+  background-color: #f9f9f9;
   padding: 35px;
-  border-radius: 10px; /* Скругленные углы */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень */
-  max-width: 1000px; /* Фиксированная ширина для карточек */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1000px;
   width: auto;
   position: relative;
 }
@@ -138,19 +154,19 @@ ul {
 .news-img {
   max-width: 100%;
   height: auto;
-  border-radius: 8px; /* Скругление изображения */
-  margin-bottom: 15px; /* Отступ между изображением и текстом */
+  border-radius: 8px;
+  margin-bottom: 15px;
 }
 
 .text-news {
   font-size: 18px;
   font-weight: bold;
   text-align: justify;
-  color: #333; /* Цвет текста */
-  margin: 0; /* Убираем отступы у заголовка */
-  word-wrap: break-word; /* Переносит длинные слова на новую строку */
-  overflow-wrap: break-word; /* Переносит длинные слова на новую строку */
-  width: 100%; /* Ограничение ширины */
+  color: #333;
+  margin: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
 }
 
 .number-of-likes {

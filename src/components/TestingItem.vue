@@ -1,39 +1,19 @@
 <script setup lang="ts">
-// import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-// import { useAuthStore } from '../stores/authStore'
+const router = useRouter()
 
-// const authStore = useAuthStore()
-
-// interface NewsItem {
-//   id: number
-//   userReaction: 'like' | 'dislike' | null
-// }
-
-// const dataTickets = ref<NewsItem[]>([
-//   {
-//     id: 1,
-//     userReaction: null,
-//   },
-//   {
-//     id: 2,
-//     userReaction: null,
-//   },
-//   {
-//     id: 3,
-//     userReaction: null,
-//   },
-// ])
-
-// const toggleDislike = (index: number) => {}
+const goToTicket = (id: number) => {
+  router.push(`/ticket/${id}`)
+}
 </script>
 
 <template>
   <div class="ticket-container">
     <div class="tickets-number">Номера билетов</div>
     <ul>
-      <li v-for="index in 20" :key="index" class="ticket-item">
-        <button>Билет {{ index }}</button>
+      <li v-for="index in 40" :key="index" class="ticket-item">
+        <button @click="goToTicket(index)">Билет {{ index }}</button>
       </li>
     </ul>
   </div>
