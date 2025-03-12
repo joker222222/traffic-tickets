@@ -5,6 +5,10 @@ import { ref } from 'vue'
 export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = ref(false)
 
+  function changeIsAuthenticated() {
+    isAuthenticated.value = true
+  }
+
   async function checkAuth() {
     try {
       // const response = await axios.get('/api/auth/check') // Запрос на сервер
@@ -16,5 +20,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { isAuthenticated, checkAuth }
+  return { isAuthenticated, checkAuth, changeIsAuthenticated }
 })

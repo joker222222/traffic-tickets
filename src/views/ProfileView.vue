@@ -1,11 +1,10 @@
 <script setup lang="ts">
 // import TheWelcome from '../components/TheWelcome.vue'
+import ProfileItem from '@/components/ProfileItem.vue'
 </script>
 
 <template>
-  <div class="about">
-    <h1>Тут будет профиль пользователя</h1>
-  </div>
+  <ProfileItem />
 </template>
 
 <style setup>

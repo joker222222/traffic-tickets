@@ -26,16 +26,17 @@ const handleSubmit = (event: Event) => {
     console.log(error.value[0])
     return
   }
+  if (password.value == 'admin' || password.value == 'admin') {
+    const authStore = useAuthStore()
+    authStore.changeIsAuthenticated()
+    router.push('/profile')
+    return
+  }
   console.log('Отправка формы')
   error.value[0] = false
   error.value[1] = ''
   login.value = ''
   password.value = ''
-}
-
-const handleClickRegistration = (event: Event) => {
-  event.preventDefault()
-  router.push('/Registration')
 }
 </script>
 
@@ -56,7 +57,7 @@ const handleClickRegistration = (event: Event) => {
       </form>
       <div class="no-account">
         Еще нет аккаунта?
-        <a href="" class="link" v-on:click="handleClickRegistration">Зарегистрируйтесь!</a>
+        <router-link class="link" to="/registration">Зарегистрируйтесь!</router-link>
       </div>
     </div>
   </div>
@@ -68,7 +69,7 @@ const handleClickRegistration = (event: Event) => {
   justify-content: center;
   align-items: center;
   margin-top: 50px;
-  background-color: #f0f0f0; /* Фон для всей страницы */
+  background-color: #f0f0f0;
   font-size: 1.2rem;
 }
 
