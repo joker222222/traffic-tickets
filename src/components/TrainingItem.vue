@@ -153,7 +153,7 @@ const handleClickUrl = (id: number) => {
 </script>
 
 <template>
-  <div class="wrapper">
+  <div class="wrapper form-container">
     <ul>
       <li v-for="(href, index) in dataUrl" :key="index" class="href-item">
         <label class="text-href" @click="handleClickUrl(href.id)">{{ href.text }}</label>
@@ -163,10 +163,20 @@ const handleClickUrl = (id: number) => {
 </template>
 
 <style scoped>
+.form-container {
+  margin: 0 auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin-top: 50px;
+  width: 100%;
+}
+
 .wrapper {
   margin-top: 50px;
   padding: 20px;
-  padding-left: 100px;
 }
 
 .href-item {

@@ -628,7 +628,7 @@ onMounted(fetchTicket)
 </script>
 
 <template>
-  <div v-if="ticket && currentQuestion">
+  <div class="form-container" v-if="ticket && currentQuestion">
     <h1 class="tickets-number">Билет №{{ ticket?.id }}</h1>
     <div class="container">
       <h2>Вопрос №{{ currentQuestion.questionId }}</h2>
@@ -669,16 +669,28 @@ onMounted(fetchTicket)
         Следующий вопрос
       </button>
     </div>
+    <router-link to="/testing">Назад</router-link>
   </div>
-  <router-link to="/testing">Назад</router-link>
 </template>
 
 <style scoped>
+.form-container {
+  margin: 0 auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  margin-top: 50px;
+  width: 100%;
+}
+
 .tickets-number {
   font-size: 1.3rem;
   margin: 15px 0 15px 0;
   text-align: center;
 }
+
 li {
   list-style: none;
 }
