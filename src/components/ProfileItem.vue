@@ -1,17 +1,47 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref } from 'vue'
 import Cookies from 'js-cookie'
 import { useAuthStore } from '@/stores/authStore'
+import { useAnswerStore } from '@/stores/answerStore'
 
 const authStore = useAuthStore()
+const answerStore = useAnswerStore()
 const router = useRouter()
 
 const tickets = ref([])
-const expandedTicket = ref<number | null>(null)
 
-const toggleTicket = (id: number) => {
-  expandedTicket.value = expandedTicket.value === id ? null : id
+const toggleTicket = async (id: number) => {
+  answerStore.clearAnswers()
+  answerStore.updateTicket(0)
+
+  const token = Cookies.get('authToken')
+
+  if (!token) {
+    console.log('Нет токена, авторизация невозможна')
+    router.push('/sign-in')
+    return
+  }
+  try {
+    const response = await fetch(`http://localhost:5000/get_one_ticket_user_ans/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!response.ok) {
+      throw new Error('Ошибка при запросе на сервер')
+    }
+    const data = await response.json()
+    data.message.map(
+      (item: { ans_id: number; ans_correct: boolean; ans_choice: string }, index: number) => {
+        answerStore.addAnswer(index + 1, item.ans_correct, item.ans_choice)
+      },
+    )
+    answerStore.updateTicket(id)
+    router.push('/results')
+  } catch {}
 }
 
 const logout = () => {
@@ -50,7 +80,7 @@ const getProfile = async () => {
 
   try {
     const response = await fetch(`http://localhost:5000/get_ticket_user_ans`, {
-      method: 'POST',
+      method: 'GET',
       headers: {
         Authorization: token,
         'Content-Type': 'application/json',
@@ -75,18 +105,16 @@ onMounted(getProfile)
     </div>
     <div class="statistics">
       <h2>Статистика по билетам</h2>
-      <div v-if="tickets.length === 0">Нет данных</div>
-      <div v-for="ticket in tickets" :key="ticket.id" class="ticket">
-        <div class="ticket-header" @click="toggleTicket(ticket.id)">Билет №{{ ticket.id }}</div>
-        <div v-if="expandedTicket === ticket.id && ticket.ans !== 'None'" class="ticket-details">
-          <ul>
-            <li v-for="answer in JSON.parse(ticket.ans)" :key="answer.ans_id">
-              <span :class="{ correct: answer.ans_correct, incorrect: !answer.ans_correct }">
-                {{ answer.ans_choice }}
-              </span>
-            </li>
-          </ul>
-        </div>
+      <div v-if="tickets.length === 0">Загрузка...</div>
+      <div
+        v-for="ticket in tickets"
+        :key="ticket.id"
+        class="ticket"
+        :class="ticket.percentages == 100 ? 'correct' : ticket.percentages > 0 ? 'incorrect' : ''"
+        @click="toggleTicket(ticket.id)"
+      >
+        <div class="ticket-header">Билет №{{ ticket.id }}</div>
+        <div class="ticket-header">Пройден на {{ ticket.percentages }}%</div>
       </div>
     </div>
     <div class="settings">
@@ -149,10 +177,19 @@ onMounted(getProfile)
 }
 
 .ticket {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
   padding: 10px;
   margin-bottom: 5px;
   cursor: pointer;
   border-radius: 5px;
+  background-color: #aabacc;
+}
+
+.ticket:hover {
+  color: white;
+  background-color: #2764aa;
 }
 
 .ticket-header {
@@ -165,10 +202,12 @@ onMounted(getProfile)
 }
 
 .correct {
-  color: green;
+  color: white;
+  background-color: green;
 }
 
 .incorrect {
-  color: red;
+  color: white;
+  background-color: rgb(172, 0, 0);
 }
 </style>
