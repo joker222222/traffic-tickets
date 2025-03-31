@@ -43,7 +43,7 @@ const getCookies = async () => {
     console.log('Ответ от сервера:', data)
   } catch (error) {
     console.error('Ошибка:', error)
-    Cookies.remove('authToken')
+    authStore.removeAuthToken()
   }
 }
 onMounted(getCookies)

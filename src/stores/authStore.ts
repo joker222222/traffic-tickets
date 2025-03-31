@@ -29,5 +29,11 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated.value = true
   }
 
-  return { isAuthenticated, checkAuth, changeIsAuthenticated, setAuthToken }
+  const removeAuthToken = () => {
+    token.value = ''
+    Cookies.remove('authToken')
+    isAuthenticated.value = false
+  }
+
+  return { isAuthenticated, checkAuth, changeIsAuthenticated, setAuthToken, removeAuthToken }
 })

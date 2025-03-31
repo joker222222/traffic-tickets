@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import router from '@/router'
+import { useRouter } from 'vue-router'
+
 import { onMounted, ref } from 'vue'
 import Cookies from 'js-cookie'
+import { useAuthStore } from '@/stores/authStore'
 
-const handleClickSettings = () => {
-  console.log('logout')
-  Cookies.remove('authToken')
+const authStore = useAuthStore()
+const router = useRouter()
+
+const logout = () => {
+  authStore.removeAuthToken()
   router.push('/sign-in')
 }
 
@@ -21,10 +25,10 @@ const getProfile = async () => {
   }
   try {
     const response = await fetch(`http://localhost:5000/profile`, {
-      method: 'GET', // Или 'POST', в зависимости от твоего запроса
+      method: 'GET',
       headers: {
-        Authorization: token, // Отправляем токен в заголовке
-        'Content-Type': 'application/json', // Если это POST-запрос с JSON
+        Authorization: token,
+        'Content-Type': 'application/json',
       },
     })
     if (!response.ok) {
@@ -34,13 +38,12 @@ const getProfile = async () => {
     userName.value = data.name
   } catch (error) {
     console.error('Ошибка:', error)
-    Cookies.remove('authToken')
+    authStore.removeAuthToken()
     router.push('/sign-in')
   }
 }
 
 onMounted(getProfile)
-// @click="handleClickSettings"
 </script>
 
 <template>
@@ -53,7 +56,7 @@ onMounted(getProfile)
     <div class="settings">
       <img
         class="img-settings"
-        @click="handleClickSettings"
+        @click="logout"
         src="https://static-00.iconduck.com/assets.00/settings-icon-2048x2046-cw28eevx.png"
       />
       <!-- <button>Выход</button> -->

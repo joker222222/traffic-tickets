@@ -4,8 +4,9 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 onMounted(() => {
-  const authStore = useAuthStore()
   if (authStore.isAuthenticated) {
     router.push('/')
   }
@@ -16,21 +17,55 @@ const name = ref('')
 const password = ref('')
 const replayPassword = ref('')
 
-const error = ref([false, ''])
+const error = ref({ hasError: false, message: '' })
 
-const handleSubmit = (event: Event) => {
+const handleSubmit = async (event: Event) => {
   event.preventDefault()
   if ((email.value == '', name.value == '' || password.value == '', replayPassword.value == '')) {
-    error.value[0] = true
-    error.value[1] = 'Не все поля заполнены'
-
-    console.log(error.value[0])
+    error.value.hasError = true
+    error.value.message = 'Логин или пароль содержит пустую строку'
+    console.log(error.value.hasError)
     return
   }
+
+  try {
+    const response = await fetch(`http://localhost:5000/sign-up`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value,
+        name: name.value,
+      }),
+    })
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(`Ошибка: ${errorData.message || 'Неизвестная ошибка'}`)
+    }
+    const data = await response.json()
+
+    if (data.message) {
+      authStore.setAuthToken(data.token)
+      console.log('Авторизация прошла успешно')
+      router.push('/profile')
+    } else {
+      error.value.hasError = true
+      error.value.message = 'Не верный логин или пароль'
+      return
+    }
+  } catch (error: any) {
+    error.value.hasError = true
+    error.value.message = error.message || 'Произошла неизвестная ошибка'
+    console.error('Ошибка при отправке формы:', error)
+    return
+  }
+
   console.log('Отправка формы')
 
-  error.value[0] = false
-  error.value[1] = ''
+  error.value.hasError = false
+  error.value.message = ''
 
   email.value = ''
   name.value = ''
@@ -59,7 +94,7 @@ const handleSubmit = (event: Event) => {
           <label>Повтор пароля:</label>
           <input type="password" v-model="replayPassword" />
         </div>
-        <div class="error">{{ error[0] === false ? '' : error[1] }}</div>
+        <div class="error">{{ error.hasError === false ? '' : error.message }}</div>
         <button type="submit">Зарегистрироваться</button>
       </form>
     </div>
