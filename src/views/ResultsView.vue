@@ -2,13 +2,40 @@
 import { useAnswerStore } from '@/stores/answerStore'
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import Cookies from 'js-cookie'
 
 const answerStore = useAnswerStore()
 const router = useRouter()
 
-const check_corr_address = () => {
+const check_corr_address = async () => {
   if (answerStore.ticket === 0 || answerStore.answers.length == 0) {
     router.push('/')
+    return
+  }
+  try {
+    const token = Cookies.get('authToken')
+    const response = await fetch(
+      `http://localhost:5000/update_ticket_user_ans/${answerStore.ticket}`,
+      {
+        method: 'POST', // Или 'POST', в зависимости от твоего запроса
+        headers: {
+          Authorization: token, // Отправляем токен в заголовке
+          'Content-Type': 'application/json', // Если это POST-запрос с JSON
+        },
+        body: JSON.stringify({
+          ans: answerStore.answers,
+        }),
+      },
+    )
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(`Ошибка: ${errorData.message || 'Неизвестная ошибка'}`)
+    }
+    const data = await response.json()
+
+    console.log(data)
+  } catch (error: any) {
+    return
   }
 }
 

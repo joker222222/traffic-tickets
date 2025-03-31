@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import Cookies from 'js-cookie'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
 const router = useRouter()
+
+const tickets = ref([])
+const expandedTicket = ref<number | null>(null)
+
+const toggleTicket = (id: number) => {
+  expandedTicket.value = expandedTicket.value === id ? null : id
+}
 
 const logout = () => {
   authStore.removeAuthToken()
@@ -41,6 +47,21 @@ const getProfile = async () => {
     authStore.removeAuthToken()
     router.push('/sign-in')
   }
+
+  try {
+    const response = await fetch(`http://localhost:5000/get_ticket_user_ans`, {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!response.ok) {
+      throw new Error('Ошибка при запросе на сервер')
+    }
+    const data = await response.json()
+    tickets.value = data.ans
+  } catch {}
 }
 
 onMounted(getProfile)
@@ -52,14 +73,28 @@ onMounted(getProfile)
       <img class="avatar-img" src="@/assets/empty.jpg" />
       <h1>{{ userName }}</h1>
     </div>
-    <div class="statistics">тут статистика</div>
+    <div class="statistics">
+      <h2>Статистика по билетам</h2>
+      <div v-if="tickets.length === 0">Нет данных</div>
+      <div v-for="ticket in tickets" :key="ticket.id" class="ticket">
+        <div class="ticket-header" @click="toggleTicket(ticket.id)">Билет №{{ ticket.id }}</div>
+        <div v-if="expandedTicket === ticket.id && ticket.ans !== 'None'" class="ticket-details">
+          <ul>
+            <li v-for="answer in JSON.parse(ticket.ans)" :key="answer.ans_id">
+              <span :class="{ correct: answer.ans_correct, incorrect: !answer.ans_correct }">
+                {{ answer.ans_choice }}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
     <div class="settings">
       <img
         class="img-settings"
         @click="logout"
         src="https://static-00.iconduck.com/assets.00/settings-icon-2048x2046-cw28eevx.png"
       />
-      <!-- <button>Выход</button> -->
     </div>
   </div>
 </template>
@@ -108,7 +143,32 @@ onMounted(getProfile)
   cursor: default;
   transition: all 1.5s ease;
 }
+
 .img-settings:hover {
   transform: rotate(720deg);
+}
+
+.ticket {
+  padding: 10px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.ticket-header {
+  font-weight: bold;
+}
+
+.ticket-details {
+  padding: 5px;
+  border-top: 1px solid #ccc;
+}
+
+.correct {
+  color: green;
+}
+
+.incorrect {
+  color: red;
 }
 </style>
