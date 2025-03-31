@@ -40,7 +40,6 @@ const handleSubmit = async (event: Event) => {
         password: password.value,
       }),
     })
-    console.log(response)
     if (!response.ok) {
       const errorData = await response.json()
       throw new Error(`Ошибка: ${errorData.message || 'Неизвестная ошибка'}`)

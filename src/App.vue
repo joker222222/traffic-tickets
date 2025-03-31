@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from './stores/authStore'
+// import router from '@/router'
 import { onMounted } from 'vue'
 import Cookies from 'js-cookie'
 
 const authStore = useAuthStore()
-
+// const router = useRoute()
 // Удаление куки
 // Cookies.remove('authToken')
 

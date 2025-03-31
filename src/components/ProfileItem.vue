@@ -1,29 +1,62 @@
 <script setup lang="ts">
 import router from '@/router'
+import { onMounted, ref } from 'vue'
+import Cookies from 'js-cookie'
 
 const handleClickSettings = () => {
-  console.log('Click Settings')
-  router.push('/settings-profile')
+  console.log('logout')
+  Cookies.remove('authToken')
+  router.push('/sign-in')
 }
-// import TheWelcome from '../components/TheWelcome.vue'
+
+const userName = ref('')
+
+const getProfile = async () => {
+  const token = Cookies.get('authToken')
+
+  if (!token) {
+    console.log('Нет токена, авторизация невозможна')
+    router.push('/sign-in')
+    return
+  }
+  try {
+    const response = await fetch(`http://localhost:5000/profile`, {
+      method: 'GET', // Или 'POST', в зависимости от твоего запроса
+      headers: {
+        Authorization: token, // Отправляем токен в заголовке
+        'Content-Type': 'application/json', // Если это POST-запрос с JSON
+      },
+    })
+    if (!response.ok) {
+      throw new Error('Ошибка при запросе на сервер')
+    }
+    const data = await response.json()
+    userName.value = data.name
+  } catch (error) {
+    console.error('Ошибка:', error)
+    Cookies.remove('authToken')
+    router.push('/sign-in')
+  }
+}
+
+onMounted(getProfile)
+// @click="handleClickSettings"
 </script>
 
 <template>
   <div class="about form-container">
     <div class="profile">
-      <img
-        class="avatar-img"
-        src="https://yastatic.net/naydex/yandex-search/K1WV6j029/yfbc79wZvj/ifOU9qfBb6ZipA_cyxE395WYTQkxTsEPK2C_J_a2ybTpEmIpragpYvHqSf1juxTrIQA3YHDgmU_KdIZkUNiEsofHv6Wt7R6KR5V-6vg2FNujwVQbaxjHBDsoomfwquKS"
-      />
-      <h1>Билл Гейтс</h1>
+      <img class="avatar-img" src="@/assets/empty.jpg" />
+      <h1>{{ userName }}</h1>
     </div>
     <div class="statistics">тут статистика</div>
     <div class="settings">
       <img
         class="img-settings"
-        src="https://static-00.iconduck.com/assets.00/settings-icon-2048x2046-cw28eevx.png"
         @click="handleClickSettings"
+        src="https://static-00.iconduck.com/assets.00/settings-icon-2048x2046-cw28eevx.png"
       />
+      <!-- <button>Выход</button> -->
     </div>
   </div>
 </template>
