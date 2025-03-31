@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import MainView from '../views/MainView.vue'
+import MainView from '@/views/MainView.vue'
 import TestingView from '@/views/TestingView.vue'
 import TrainingView from '@/views/TrainingView.vue'
 import ExamView from '@/views/ExamView.vue'
 import Marathon from '@/views/MarathonView.vue'
-import StatisticsView from '@/views/StatisticsView.vue'
+import ResultsView from '@/views/ResultsView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import AuthorizationView from '@/views/AuthorizationView.vue'
 import RegistrationView from '@/views/RegistrationView.vue'
@@ -18,10 +18,10 @@ const routes = [
   { path: '/training', name: 'training', component: TrainingView },
   { path: '/exam', name: 'exam', component: ExamView },
   { path: '/marathon', name: 'marathon', component: Marathon },
-  { path: '/statistics', name: 'statistics', component: StatisticsView },
+  { path: '/results', name: 'results', component: ResultsView },
   { path: '/profile', name: 'profile', component: ProfileView },
-  { path: '/authorization', name: 'authorization', component: AuthorizationView },
-  { path: '/registration', name: 'registration', component: RegistrationView },
+  { path: '/sign-in', name: 'authorization', component: AuthorizationView },
+  { path: '/sign-up', name: 'registration', component: RegistrationView },
   { path: '/ticket/:id', name: 'ticket', component: TicketView, props: true },
   { path: '/settings-profile', name: 'settings-profile', component: SettingsProfile },
 ]

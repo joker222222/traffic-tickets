@@ -6,14 +6,13 @@ import { useAuthStore } from '../stores/authStore'
 const router = useRouter()
 onMounted(() => {
   const authStore = useAuthStore()
-  // Проверяем авторизацию и если пользователь авторизован, перенаправляем его
   if (authStore.isAuthenticated) {
-    router.push('/') // Перенаправляем на страницу, если пользователь авторизован
+    router.push('/')
   }
 })
 
 const email = ref('')
-const login = ref('')
+const name = ref('')
 const password = ref('')
 const replayPassword = ref('')
 
@@ -21,7 +20,7 @@ const error = ref([false, ''])
 
 const handleSubmit = (event: Event) => {
   event.preventDefault()
-  if ((email.value == '', login.value == '' || password.value == '', replayPassword.value == '')) {
+  if ((email.value == '', name.value == '' || password.value == '', replayPassword.value == '')) {
     error.value[0] = true
     error.value[1] = 'Не все поля заполнены'
 
@@ -34,7 +33,7 @@ const handleSubmit = (event: Event) => {
   error.value[1] = ''
 
   email.value = ''
-  login.value = ''
+  name.value = ''
   password.value = ''
   replayPassword.value = ''
 }
@@ -45,12 +44,12 @@ const handleSubmit = (event: Event) => {
     <div class="form-container">
       <form @submit="handleSubmit">
         <div>
-          <label>Почта:</label>
-          <input v-model="email" />
+          <label>Имя:</label>
+          <input v-model="name" />
         </div>
         <div>
-          <label>Логин:</label>
-          <input v-model="login" />
+          <label>Почта:</label>
+          <input v-model="email" />
         </div>
         <div>
           <label>Пароль:</label>

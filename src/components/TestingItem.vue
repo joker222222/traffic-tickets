@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -6,13 +7,36 @@ const router = useRouter()
 const goToTicket = (id: number) => {
   router.push(`/ticket/${id}`)
 }
+
+const tickets = ref<number[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+const fetchTickets = async () => {
+  loading.value = true
+  error.value = null
+  try {
+    const response = await fetch('http://localhost:5000/ticket_count')
+    if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`)
+
+    const data = await response.json()
+    tickets.value = data.ticket_count
+  } catch (err) {
+    error.value = (err as Error).message
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchTickets)
 </script>
 
 <template>
   <div class="ticket-container form-container">
     <div class="tickets-number">Номера билетов</div>
+    <div v-if="loading">Загрузка билетов...</div>
     <ul>
-      <li v-for="index in 40" :key="index" class="ticket-item">
+      <li v-for="index in tickets" :key="index" class="ticket-item">
         <button @click="goToTicket(index)">Билет {{ index }}</button>
       </li>
     </ul>

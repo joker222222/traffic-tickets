@@ -4,8 +4,9 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 onMounted(() => {
-  const authStore = useAuthStore()
   // Проверяем авторизацию и если пользователь авторизован, перенаправляем его
   if (authStore.isAuthenticated) {
     router.push('/') // Перенаправляем на страницу, если пользователь авторизован
@@ -15,26 +16,56 @@ onMounted(() => {
 const login = ref('')
 const password = ref('')
 
-const error = ref([false, ''])
+const error = ref({ hasError: false, message: '' })
 
-const handleSubmit = (event: Event) => {
+const handleSubmit = async (event: Event) => {
   event.preventDefault()
-  if (login.value == '' || password.value == '') {
-    error.value[0] = true
-    error.value[1] = 'Логин или пароль содержит пустую строку'
 
-    console.log(error.value[0])
+  // Проверка на пустые поля
+  if (login.value == '' || password.value == '') {
+    error.value.hasError = true
+    error.value.message = 'Логин или пароль содержит пустую строку'
+    console.log(error.value.hasError)
     return
   }
-  if (password.value == 'admin' || password.value == 'admin') {
-    const authStore = useAuthStore()
-    authStore.changeIsAuthenticated()
-    router.push('/profile')
+
+  try {
+    const response = await fetch(`http://localhost:5000/sign-in`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: login.value,
+        password: password.value,
+      }),
+    })
+    console.log(response)
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(`Ошибка: ${errorData.message || 'Неизвестная ошибка'}`)
+    }
+    const data = await response.json()
+
+    if (data.message) {
+      authStore.setAuthToken(data.token)
+      console.log('Авторизация прошла успешно')
+      router.push('/profile')
+    } else {
+      error.value.hasError = true
+      error.value.message = 'Не верный логин или пароль'
+      return
+    }
+  } catch (error: any) {
+    error.value.hasError = true
+    error.value.message = error.message || 'Произошла неизвестная ошибка'
+    console.error('Ошибка при отправке формы:', error)
     return
   }
-  console.log('Отправка формы')
-  error.value[0] = false
-  error.value[1] = ''
+
+  // Очистка формы и сброс ошибок
+  error.value.hasError = false
+  error.value.message = ''
   login.value = ''
   password.value = ''
 }
@@ -45,19 +76,19 @@ const handleSubmit = (event: Event) => {
     <div class="form-container">
       <form @submit="handleSubmit">
         <div>
-          <label>Логин/Почта:</label>
+          <label>Почта:</label>
           <input v-model="login" />
         </div>
         <div>
           <label>Пароль:</label>
           <input type="password" v-model="password" />
         </div>
-        <div class="error">{{ error[0] === false ? '' : error[1] }}</div>
+        <div class="error">{{ error.hasError === false ? '' : error.message }}</div>
         <button type="submit">Войти</button>
       </form>
       <div class="no-account">
         Еще нет аккаунта?
-        <router-link class="link" to="/registration">Зарегистрируйтесь!</router-link>
+        <router-link class="link" to="/sign-up">Зарегистрируйтесь!</router-link>
       </div>
     </div>
   </div>

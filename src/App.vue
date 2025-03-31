@@ -1,8 +1,51 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuthStore } from './stores/authStore'
+import { onMounted } from 'vue'
+import Cookies from 'js-cookie'
 
 const authStore = useAuthStore()
+
+// Удаление куки
+// Cookies.remove('authToken')
+
+// Установка куки
+// Cookies.set('authToken', 'newGeneratedToken', { expires: 7 })  // expires — это срок действия куки в днях
+
+// Проверяем наличие токена в куках
+// const token = Cookies.get('authToken')
+
+const getCookies = async () => {
+  // Проверяем наличие токена в куках
+  const token = Cookies.get('authToken')
+
+  if (!token) {
+    console.log('Нет токена, авторизация невозможна')
+    return
+  }
+
+  try {
+    const response = await fetch(`http://localhost:5000/token_check`, {
+      method: 'POST', // Или 'POST', в зависимости от твоего запроса
+      headers: {
+        Authorization: token, // Отправляем токен в заголовке
+        'Content-Type': 'application/json', // Если это POST-запрос с JSON
+      },
+    })
+    console.log(token)
+    if (!response.ok) {
+      throw new Error('Ошибка при запросе на сервер')
+    }
+
+    const data = await response.json() // Преобразуем ответ в JSON
+    authStore.setAuthToken(token)
+    console.log('Ответ от сервера:', data)
+  } catch (error) {
+    console.error('Ошибка:', error)
+    Cookies.remove('authToken')
+  }
+}
+onMounted(getCookies)
 </script>
 
 <template>
@@ -18,10 +61,10 @@ const authStore = useAuthStore()
         <!-- <RouterLink to="/statistics" v-if="authStore.isAuthenticated"
           ><h1>Статистика</h1></RouterLink >-->
         <RouterLink to="/profile" v-if="authStore.isAuthenticated"><h1>Профиль</h1></RouterLink>
-        <RouterLink to="/authorization" v-if="!authStore.isAuthenticated"
-          ><h1>Регистрация</h1></RouterLink
+        <RouterLink to="/sign-in" v-if="!authStore.isAuthenticated"
+          ><h1>Авторизация</h1></RouterLink
         >
-        <!-- <RouterLink to="/registration" v-if="!authStore.isAuthenticated"
+        <!-- <RouterLink to="/sign-up" v-if="!authStore.isAuthenticated"
           ><h1>Регистрация</h1></RouterLink>   Возможно будет под авторизационной формой-->
       </nav>
     </div>

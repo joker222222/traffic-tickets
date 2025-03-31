@@ -1,24 +1,33 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-// import axios from 'axios'
+import Cookies from 'js-cookie'
 
 export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = ref(false)
+  const token = ref('')
 
-  function changeIsAuthenticated() {
-    isAuthenticated.value = true
+  // Функция для изменения состояния аутентификации
+  function changeIsAuthenticated(status: boolean) {
+    isAuthenticated.value = status
   }
 
-  async function checkAuth() {
-    try {
-      // const response = await axios.get('/api/auth/check') // Запрос на сервер
-      // isAuthenticated.value = response.data.authenticated // true/false от сервера
-      isAuthenticated.value = false // true/false от сервера
-    } catch (error) {
-      console.error('Ошибка проверки авторизации:', error)
+  // Функция для проверки аутентификации, можно проверить токен в куках
+  const checkAuth = () => {
+    const storedToken = Cookies.get('authToken')
+    if (storedToken) {
+      token.value = storedToken
+      isAuthenticated.value = true
+    } else {
       isAuthenticated.value = false
     }
   }
 
-  return { isAuthenticated, checkAuth, changeIsAuthenticated }
+  // Функция для установки токена в store и куки
+  const setAuthToken = (newToken: string) => {
+    token.value = newToken
+    Cookies.set('authToken', newToken, { expires: 7 }) // Сохраняем токен в куки на 7 дней
+    isAuthenticated.value = true
+  }
+
+  return { isAuthenticated, checkAuth, changeIsAuthenticated, setAuthToken }
 })
