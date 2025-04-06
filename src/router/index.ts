@@ -11,6 +11,7 @@ import AuthorizationView from '@/views/AuthorizationView.vue'
 import RegistrationView from '@/views/RegistrationView.vue'
 import TicketView from '@/views/TicketView.vue'
 import SettingsProfile from '@/views/SettingsProfile.vue'
+import ResultsViewExam from '@/views/ResultsViewExam.vue'
 
 const routes = [
   { path: '/', name: 'home', component: MainView },
@@ -24,6 +25,7 @@ const routes = [
   { path: '/sign-up', name: 'registration', component: RegistrationView },
   { path: '/ticket/:id', name: 'ticket', component: TicketView, props: true },
   { path: '/settings-profile', name: 'settings-profile', component: SettingsProfile },
+  { path: '/resultsExam', name: 'resultsExam', component: ResultsViewExam },
 ]
 
 const router = createRouter({

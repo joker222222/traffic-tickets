@@ -33,7 +33,6 @@ const getCookies = async () => {
         'Content-Type': 'application/json', // Если это POST-запрос с JSON
       },
     })
-    console.log(token)
     if (!response.ok) {
       throw new Error('Ошибка при запросе на сервер')
     }

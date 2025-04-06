@@ -1,12 +1,42 @@
 <script setup lang="ts">
-// defineProps<{
-//   msg: string
-// }>()
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
 import { useAuthStore } from '../stores/authStore'
+import Cookies from 'js-cookie'
 
 const authStore = useAuthStore()
+
+const getNews = async () => {
+  if (!authStore.isAuthenticated) {
+    try {
+      const response = await fetch(`http://localhost:5000/get_all_news_unauth`, {
+        method: 'GET',
+      })
+      if (!response.ok) {
+        throw new Error('Ошибка при запросе на сервер')
+      }
+      const data = await response.json()
+      newsArray.value = data.message
+    } catch {}
+  } else {
+    const token = Cookies.get('authToken')
+    if (!token) {
+      return
+    }
+    const response = await fetch(`http://localhost:5000/get_all_news_authorized`, {
+      method: 'GET',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!response.ok) {
+      throw new Error('Ошибка при запросе на сервер')
+    }
+    const data = await response.json()
+    newsArray.value = data.message
+  }
+}
 
 interface NewsItem {
   img: string
@@ -15,37 +45,38 @@ interface NewsItem {
   dislikes: number
   userReaction: 'like' | 'dislike' | null
   showLoginMessage?: boolean
+  postId: number
 }
 
 const newsArray = ref<NewsItem[]>([
-  {
-    img: '',
-    text: `Глава АвтоВАЗа Максим Соколов назвал условие возвращения Renault в Россию⚡️
-    Для этого нужно компенсировать АвтоВАЗу 112,5 млрд руб. (€1.2 млрд.), инвестированных в годы отсутствия французов. Сам же Renault оценивал свои российские активы всего в €2,195 млрд. (включая бывший АЗЛК).
-    Собянин о возможном возвращении Renault высказался так:
-    Ну, он, может, и не исключает, но вряд ли ему что-то тут светит.
-    Не ждут у нас обратно иностранцев по ходу. Так мы останемся без возвращения Mcdonald’s со Вкусно и точкой.`,
-    likes: 2,
-    dislikes: 0,
-    userReaction: null,
-    showLoginMessage: false,
-  },
-  {
-    img: 'https://images.wallpaperscraft.com/image/single/lake_mountain_tree_36589_2650x1600.jpg',
-    text: 'новость2',
-    likes: 3,
-    dislikes: 0,
-    userReaction: null,
-    showLoginMessage: false,
-  },
-  {
-    img: 'https://i.pinimg.com/originals/36/76/99/36769945f37cb48d1cc24ba4dc724d94.jpg',
-    text: 'новость3',
-    likes: 3,
-    dislikes: 0,
-    userReaction: null,
-    showLoginMessage: false,
-  },
+  // {
+  //   img: '',
+  //   text: `Глава АвтоВАЗа Максим Соколов назвал условие возвращения Renault в Россию⚡️
+  //   Для этого нужно компенсировать АвтоВАЗу 112,5 млрд руб. (€1.2 млрд.), инвестированных в годы отсутствия французов. Сам же Renault оценивал свои российские активы всего в €2,195 млрд. (включая бывший АЗЛК).
+  //   Собянин о возможном возвращении Renault высказался так:
+  //   Ну, он, может, и не исключает, но вряд ли ему что-то тут светит.
+  //   Не ждут у нас обратно иностранцев по ходу. Так мы останемся без возвращения Mcdonald’s со Вкусно и точкой.`,
+  //   likes: 2,
+  //   dislikes: 0,
+  //   userReaction: null,
+  //   showLoginMessage: false,
+  // },
+  // {
+  //   img: 'https://images.wallpaperscraft.com/image/single/lake_mountain_tree_36589_2650x1600.jpg',
+  //   text: 'новость2',
+  //   likes: 3,
+  //   dislikes: 0,
+  //   userReaction: null,
+  //   showLoginMessage: false,
+  // },
+  // {
+  //   img: 'https://i.pinimg.com/originals/36/76/99/36769945f37cb48d1cc24ba4dc724d94.jpg',
+  //   text: 'новость3',
+  //   likes: 3,
+  //   dislikes: 0,
+  //   userReaction: null,
+  //   showLoginMessage: false,
+  // },
 ])
 
 const showLoginMessage = (index: number) => {
@@ -55,19 +86,35 @@ const showLoginMessage = (index: number) => {
   }, 3000)
 }
 
-const toggleLike = (index: number) => {
+const setStatusLike = async (token: string, postId: number, status: string) => {
+  await fetch('http://localhost:5000/set_status_post', {
+    method: 'POST',
+    body: JSON.stringify({
+      id: postId,
+      reaction: status,
+    }),
+    headers: {
+      Authorization: token,
+      'Content-Type': 'application/json',
+    },
+  })
+}
+
+const toggleLike = async (index: number) => {
   if (!authStore.isAuthenticated) {
-    console.log('Вы должны быть зарегистрированы чтобы поставить лайк')
     showLoginMessage(index)
     return
   }
   const news = newsArray.value[index]
+  const token = Cookies.get('authToken')
   if (news.userReaction === 'like') {
     // Если уже стоит лайк, убираем его
+    setStatusLike(token, news.postId, null)
     news.likes--
     news.userReaction = null
   } else {
     // Если был дизлайк, убираем его
+    setStatusLike(token, news.postId, 'like')
     if (news.userReaction === 'dislike') {
       news.dislikes--
     }
@@ -83,12 +130,15 @@ const toggleDislike = (index: number) => {
     return
   }
   const news = newsArray.value[index]
+  const token = Cookies.get('authToken')
   if (news.userReaction === 'dislike') {
     // Если уже стоит дизлайк, убираем его
+    setStatusLike(token, news.postId, null)
     news.dislikes--
     news.userReaction = null
   } else {
     // Если был лайк, убираем его
+    setStatusLike(token, news.postId, 'dislike')
     if (news.userReaction === 'like') {
       news.likes--
     }
@@ -96,11 +146,13 @@ const toggleDislike = (index: number) => {
     news.userReaction = 'dislike'
   }
 }
+onMounted(getNews)
 </script>
 
 <template>
   <div class="news-container">
     <ul>
+      <h1 v-if="newsArray.length == 0">Загрузка...</h1>
       <li v-for="(news, index) in newsArray" :key="index" class="news-item">
         <img v-if="news.img" :src="news.img" class="news-img" />
         <h2 class="text-news">{{ news.text }}</h2>

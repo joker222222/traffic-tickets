@@ -194,10 +194,10 @@ const handleClickUrl = (id: number) => {
 }
 
 .text-href:hover {
-  color: #007bff; /* Цвет при наведении */
+  color: #007bff;
 }
 
 .text-href:active {
-  color: #0056b3; /* Цвет при нажатии */
+  color: #0056b3;
 }
 </style>

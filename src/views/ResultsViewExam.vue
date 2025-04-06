@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useAnswerStore } from '@/stores/answerStore'
+import { useAnswerStoreExam } from '@/stores/answerStoreExam'
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Cookies from 'js-cookie'
 
-const answerStore = useAnswerStore()
+const answerStore = useAnswerStoreExam()
 const router = useRouter()
 
 const check_corr_address = async () => {
@@ -12,43 +12,41 @@ const check_corr_address = async () => {
     router.push('/')
     return
   }
-  try {
+  if (answerStore.ticket == 1) {
     const token = Cookies.get('authToken')
-    const response = await fetch(
-      `http://localhost:5000/update_ticket_user_ans/${answerStore.ticket}`,
-      {
-        method: 'POST', // Или 'POST', в зависимости от твоего запроса
-        headers: {
-          Authorization: token, // Отправляем токен в заголовке
-          'Content-Type': 'application/json', // Если это POST-запрос с JSON
-        },
-        body: JSON.stringify({
-          ans: answerStore.answers,
-        }),
+    const examId_req = await fetch(`http://localhost:5000/examId`, {
+      method: 'GET',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
       },
-    )
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(`Ошибка: ${errorData.message || 'Неизвестная ошибка'}`)
-    }
-    const data = await response.json()
-
-    console.log(data)
-  } catch (error: any) {
-    return
+    })
+    const examId = await examId_req.json()
+    const exam = examId.message + 1
+    await fetch(`http://localhost:5000/add_exam/${exam}`, {
+      method: 'POST',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ans: answerStore.answers,
+      }),
+    })
+    answerStore.updateTicket(0)
   }
 }
 
 onMounted(check_corr_address)
 
 const goBack = () => {
-  router.push('/testing')
+  router.push('/exam')
 }
 </script>
 
 <template>
   <div class="about">
-    <h1>Результаты билета №{{ answerStore.ticket }}</h1>
+    <h1>Экзаменационный билет</h1>
     <ul class="answer-list">
       <li v-for="(answer, index) in answerStore.answers" :key="answer.ans_id" class="answer-item">
         <div class="answer-header">
