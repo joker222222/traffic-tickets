@@ -31,6 +31,7 @@ const check_corr_address = async () => {
       },
       body: JSON.stringify({
         ans: answerStore.answers,
+        timeLeft: answerStore.timeLeft,
       }),
     })
     answerStore.updateTicket(0)

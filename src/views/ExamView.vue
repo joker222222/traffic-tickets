@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import router from '@/router'
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAnswerStoreExam } from '@/stores/answerStoreExam'
 
@@ -16,6 +16,26 @@ interface Question {
 
 interface Ticket {
   questions: Question[]
+}
+
+const timeStart = 20 * 60
+const timeLeft = ref(timeStart)
+const intervalId = ref<number | null>(null)
+const timeExpired = computed(() => timeLeft.value <= 0)
+
+const formattedTime = computed(() => {
+  const minutes = Math.floor(timeLeft.value / 60)
+  const seconds = timeLeft.value % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+})
+const startTimer = () => {
+  intervalId.value = setInterval(() => {
+    if (timeLeft.value > 0) {
+      timeLeft.value--
+    } else {
+      clearInterval(intervalId.value!)
+    }
+  }, 1000)
 }
 
 const route = useRoute()
@@ -119,7 +139,7 @@ const currentQuestion = computed(() =>
 const nextQuestion = () => {
   if (buttonNextQuest.value === 'Закончить тест') {
     answerStore.updateTicket(1)
-    console.log(answerStore.answers)
+    answerStore.updateTimeLeft(timeStart - timeLeft.value)
     router.push('/resultsExam')
     return
   }
@@ -133,12 +153,23 @@ const nextQuestion = () => {
   }
 }
 
-onMounted(fetchTickets)
+onMounted(() => {
+  fetchTickets()
+  startTimer()
+})
+
+onUnmounted(() => {
+  if (intervalId.value) clearInterval(intervalId.value)
+})
 </script>
 
 <template>
   <div class="form-container" v-if="ticket && currentQuestion">
     <h1 class="tickets-number">Экзаменационный билет</h1>
+    <div class="timer" style="font-size: 18px; color: red">
+      Оставшееся время: {{ formattedTime }}
+    </div>
+
     <div class="container">
       <h2>Вопрос №{{ currentQuestion.questionId }}</h2>
       <div>
@@ -153,7 +184,7 @@ onMounted(fetchTickets)
         <li v-for="answer in currentQuestion.answers" :key="answer">
           <button
             class="answer"
-            :disabled="spammStop"
+            :disabled="spammStop || timeExpired"
             @click="handleCheckAnswer(answer, currentQuestion)"
           >
             {{ answer.answerText }}

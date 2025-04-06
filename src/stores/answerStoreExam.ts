@@ -11,9 +11,14 @@ export interface Answer {
 export const useAnswerStoreExam = defineStore('answerStore', () => {
   const answers = ref<Answer[]>([])
   const ticket = ref(0)
+  const timeLeft = ref(0)
 
   const addAnswer = (id: number, correct: boolean, choice: string) => {
     answers.value.push({ ans_id: id, ans_correct: correct, ans_choice: choice })
+  }
+
+  const updateTimeLeft = (time: number) => {
+    timeLeft.value = time
   }
 
   const clearAnswers = () => {
@@ -31,5 +36,14 @@ export const useAnswerStoreExam = defineStore('answerStore', () => {
     ticket.value = id
   }
 
-  return { answers, addAnswer, clearAnswers, updateAnswer, ticket, updateTicket }
+  return {
+    answers,
+    addAnswer,
+    clearAnswers,
+    updateAnswer,
+    ticket,
+    updateTicket,
+    updateTimeLeft,
+    timeLeft,
+  }
 })

@@ -4,14 +4,17 @@ import { onMounted, ref } from 'vue'
 import Cookies from 'js-cookie'
 import { useAuthStore } from '@/stores/authStore'
 import { useAnswerStore } from '@/stores/answerStore'
+import { useAnswerStoreExam } from '@/stores/answerStoreExam'
 
 const authStore = useAuthStore()
 const answerStore = useAnswerStore()
+const answerStoreExam = useAnswerStoreExam()
 const router = useRouter()
 const seeTicket = ref(false)
 const seeExam = ref(false)
 
 const tickets = ref([])
+const ticketsExam = ref([])
 
 const toggleTicket = async (id: number) => {
   answerStore.clearAnswers()
@@ -43,6 +46,39 @@ const toggleTicket = async (id: number) => {
     )
     answerStore.updateTicket(id)
     router.push('/results')
+  } catch {}
+}
+
+const toggleTicketExam = async (id: number) => {
+  answerStoreExam.clearAnswers()
+  answerStoreExam.updateTicket(0)
+
+  const token = Cookies.get('authToken')
+
+  if (!token) {
+    console.log('Нет токена, авторизация невозможна')
+    router.push('/sign-in')
+    return
+  }
+  try {
+    const response = await fetch(`http://localhost:5000/get_exam_one_ticket_user_ans/${id}`, {
+      method: 'GET',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!response.ok) {
+      throw new Error('Ошибка при запросе на сервер')
+    }
+    const data = await response.json()
+    data.message.map(
+      (item: { ans_id: number; ans_correct: boolean; ans_choice: string }, index: number) => {
+        answerStoreExam.addAnswer(index + 1, item.ans_correct, item.ans_choice)
+      },
+    )
+    answerStoreExam.updateTicket(2)
+    router.push('/resultsExam')
   } catch {}
 }
 
@@ -94,6 +130,21 @@ const getProfile = async () => {
     const data = await response.json()
     tickets.value = data.ans
   } catch {}
+
+  try {
+    const response = await fetch(`http://localhost:5000/get_all_exam`, {
+      method: 'GET',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+    })
+    if (!response.ok) {
+      throw new Error('Ошибка при запросе на сервер')
+    }
+    const data = await response.json()
+    ticketsExam.value = data.ans
+  } catch {}
 }
 
 const changeShowTicket = (id: number) => {
@@ -112,6 +163,12 @@ const changeShowTicket = (id: number) => {
       seeExam.value = true
     }
   }
+}
+
+const formattedTime = (timeLeft: number) => {
+  const minutes = Math.floor(timeLeft / 60)
+  const seconds = timeLeft % 60
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
 onMounted(getProfile)
@@ -187,13 +244,34 @@ onMounted(getProfile)
         :class="ticket.percentages == 100 ? 'correct' : ticket.percentages > 0 ? 'incorrect' : ''"
         @click="toggleTicket(ticket.id)"
       >
-        <div class="ticket-header">Билет №{{ ticket.id }}</div>
-        <div class="ticket-header">Пройден на {{ ticket.percentages }}%</div>
+        <div class="ticket-header">
+          <div class="ticket-header">Билет №{{ ticket.id }}</div>
+          <div class="ticket-header">Пройден на {{ ticket.percentages }}%</div>
+        </div>
       </div>
     </div>
 
     <div class="statistics" v-if="seeExam">
       <h2>Статистика по экзамену</h2>
+      <div v-if="ticketsExam.length === 0">Загрузка...</div>
+      <div
+        v-for="ticket in ticketsExam"
+        :key="ticket.id"
+        class="ticket"
+        :class="ticket.percentages == 100 ? 'correct' : ticket.percentages > 0 ? 'incorrect' : ''"
+        @click="toggleTicketExam(ticket.tickId)"
+      >
+        <div class="ticket-header">
+          <div class="ticket-header">Экзамен №{{ ticket.id }}</div>
+          <div class="ticket-header">Пройден на {{ ticket.percentages }}%</div>
+        </div>
+        <div class="ticket-footer">
+          <div class="ticket-header">
+            Время прохождения {{ formattedTime(ticket.timeLeft) }} минут
+          </div>
+          <div class="ticket-header">Дата прохождения {{ ticket.dateLeft }}</div>
+        </div>
+      </div>
     </div>
 
     <div class="settings">
@@ -256,9 +334,6 @@ onMounted(getProfile)
 }
 
 .ticket {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
   padding: 10px;
   margin-bottom: 5px;
   cursor: pointer;
@@ -273,6 +348,16 @@ onMounted(getProfile)
 
 .ticket-header {
   font-weight: bold;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.ticket-footer {
+  font-weight: bold;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
 }
 
 .ticket-details {
