@@ -27,17 +27,17 @@ const getCookies = async () => {
 
   try {
     const response = await fetch(`http://localhost:5000/token_check`, {
-      method: 'POST', // Или 'POST', в зависимости от твоего запроса
+      method: 'POST',
       headers: {
-        Authorization: token, // Отправляем токен в заголовке
-        'Content-Type': 'application/json', // Если это POST-запрос с JSON
+        Authorization: token,
+        'Content-Type': 'application/json',
       },
     })
     if (!response.ok) {
       throw new Error('Ошибка при запросе на сервер')
     }
 
-    const data = await response.json() // Преобразуем ответ в JSON
+    const data = await response.json()
     authStore.setAuthToken(token)
     console.log('Ответ от сервера:', data)
   } catch (error) {

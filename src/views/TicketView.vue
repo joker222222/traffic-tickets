@@ -29,6 +29,7 @@ const loadedImages = ref<Record<string, HTMLImageElement>>({})
 let accessNextQuest = false
 const buttonNextQuest = ref('Следующий вопрос')
 const answerStore = useAnswerStore()
+const spammStop = ref(false)
 
 const fetchTickets = async () => {
   answerStore.clearAnswers()
@@ -87,6 +88,7 @@ const handleCheckAnswer = async (
   },
 ) => {
   accessNextQuest = true
+  spammStop.value = true
   try {
     const response = await fetch(`http://localhost:5000/ticket/check_answer/${Cur_question.id}`)
     if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`)
@@ -105,7 +107,7 @@ const handleCheckAnswer = async (
     if (answer.answerText === correctAnswer) {
       answerStore.addAnswer(Cur_question.id, true, answer.answerText)
       showHelpMessage.value = false
-      nextQuestion()
+      // nextQuestion()
     } else {
       answerStore.addAnswer(Cur_question.id, false, answer.answerText)
       answer.isChoice = true
@@ -121,6 +123,8 @@ const currentQuestion = computed(() =>
 )
 
 const nextQuestion = () => {
+  if (spammStop.value == false) return
+  spammStop.value = false
   if (buttonNextQuest.value === 'Закончить тест') {
     router.push('/results')
     return
@@ -155,7 +159,7 @@ onMounted(fetchTickets)
         <li v-for="answer in currentQuestion.answers" :key="answer">
           <button
             class="answer"
-            :disabled="showHelpMessage"
+            :disabled="showHelpMessage || spammStop"
             :class="{
               'answer-correct': answer.isCorrect, // Подсветка правильного ответа
               'answer-incorrect': answer.isChoice, // Подсветка неправильного ответа

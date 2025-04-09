@@ -15,13 +15,12 @@ onMounted(() => {
 const email = ref('')
 const name = ref('')
 const password = ref('')
-const replayPassword = ref('')
 
 const error = ref({ hasError: false, message: '' })
 
 const handleSubmit = async (event: Event) => {
   event.preventDefault()
-  if ((email.value == '', name.value == '' || password.value == '', replayPassword.value == '')) {
+  if ((email.value == '', name.value == '' || password.value == '')) {
     error.value.hasError = true
     error.value.message = 'Логин или пароль содержит пустую строку'
     console.log(error.value.hasError)
@@ -90,10 +89,6 @@ const handleSubmit = async (event: Event) => {
           <label>Пароль:</label>
           <input type="password" v-model="password" />
         </div>
-        <div>
-          <label>Повтор пароля:</label>
-          <input type="password" v-model="replayPassword" />
-        </div>
         <div class="error">{{ error.hasError === false ? '' : error.message }}</div>
         <button type="submit">Зарегистрироваться</button>
       </form>
@@ -106,7 +101,7 @@ const handleSubmit = async (event: Event) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 50px;
+  margin-top: 0;
   background-color: #f0f0f0; /* Фон для всей страницы */
   font-size: 1.2rem;
 }

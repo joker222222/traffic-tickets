@@ -98,7 +98,7 @@ const handleSubmit = async (event: Event) => {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 50px;
+  margin-top: 0;
   background-color: #f0f0f0;
   font-size: 1.2rem;
 }
