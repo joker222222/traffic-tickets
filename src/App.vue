@@ -37,9 +37,9 @@ const getCookies = async () => {
       throw new Error('Ошибка при запросе на сервер')
     }
 
-    const data = await response.json()
+    // const data = await response.json()
     authStore.setAuthToken(token)
-    console.log('Ответ от сервера:', data)
+    // console.log('Ответ от сервера:', data)
   } catch (error) {
     console.error('Ошибка:', error)
     authStore.removeAuthToken()

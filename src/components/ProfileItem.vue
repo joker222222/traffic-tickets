@@ -105,6 +105,7 @@ const logout = () => {
 }
 
 const userName = ref('')
+const userAvatar = ref('')
 
 const getProfile = async () => {
   const token = Cookies.get('authToken')
@@ -126,7 +127,8 @@ const getProfile = async () => {
       throw new Error('Ошибка при запросе на сервер')
     }
     const data = await response.json()
-    userName.value = data.name
+    userName.value = data.data.name
+    userAvatar.value = data.data.avatar
   } catch (error) {
     console.error('Ошибка:', error)
     authStore.removeAuthToken()
@@ -194,7 +196,7 @@ onMounted(getProfile)
 <template>
   <div class="about form-container">
     <div class="profile">
-      <img class="avatar-img" src="@/assets/empty.jpg" />
+      <img class="avatar-img" :src="userAvatar" />
       <h1>{{ userName }}</h1>
     </div>
 
