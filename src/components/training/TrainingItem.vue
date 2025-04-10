@@ -1388,6 +1388,15 @@ const blockLinks = (e: MouseEvent) => {
 
 <style>
 @import './training.css';
+.info-link__window,
+.info-link__window_hidden,
+.info-link__window_header {
+  visibility: hidden;
+}
+.document-page__content {
+  margin: 0;
+  padding: 0;
+}
 
 ul,
 li {

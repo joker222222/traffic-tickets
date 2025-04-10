@@ -1,55 +1,48 @@
 <script setup lang="ts">
-import { useAnswerStoreExam } from '@/stores/answerStoreExam'
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import Cookies from 'js-cookie'
+import { onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
-const answerStore = useAnswerStoreExam()
-const router = useRouter()
-
-const check_corr_address = async () => {
-  if (answerStore.ticket === 0 || answerStore.answers.length == 0) {
-    router.push('/')
-    return
-  }
-  if (answerStore.ticket == 1) {
-    const token = Cookies.get('authToken')
-    const examId_req = await fetch(`http://localhost:5000/examId`, {
-      method: 'GET',
-      headers: {
-        Authorization: token,
-        'Content-Type': 'application/json',
-      },
-    })
-    const examId = await examId_req.json()
-    const exam = examId.message + 1
-    await fetch(`http://localhost:5000/add_exam/${exam}`, {
-      method: 'POST',
-      headers: {
-        Authorization: token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ans: answerStore.answers,
-        timeLeft: answerStore.timeLeft,
-      }),
-    })
-    answerStore.updateTicket(0)
-  }
+interface answerStoreg {
+  tiketName: string
+  items: ResultItem[]
 }
 
-onMounted(check_corr_address)
+interface ResultItem {
+  ans_id: number
+  ans_correct: boolean
+  ans_choice: string
+}
+
+const answerStore = ref<answerStoreg>([])
+
+const router = useRouter()
+const route = useRoute()
+const backPage = ref('')
+
+onMounted(() => {
+  const resultData = JSON.parse(route.query.answers as string) as ResultItem[]
+  const resultName = route.query.name as string
+  const resultPage = route.query.page as string
+
+  if (resultData) {
+    answerStore.value.tiketName = resultName
+    answerStore.value.items = resultData
+    backPage.value = resultPage
+  } else {
+    router.push('/profile')
+  }
+})
 
 const goBack = () => {
-  router.push('/exam')
+  router.push(backPage.value)
 }
 </script>
 
 <template>
   <div class="about">
-    <h1>Экзаменационный билет</h1>
+    <h1>{{ answerStore.tiketName }}</h1>
     <ul class="answer-list">
-      <li v-for="(answer, index) in answerStore.answers" :key="answer.ans_id" class="answer-item">
+      <li v-for="(answer, index) in answerStore.items" :key="answer.ans_id" class="answer-item">
         <div class="answer-header">
           <span class="answer-id">Вопрос {{ index + 1 }}:</span>
           <span

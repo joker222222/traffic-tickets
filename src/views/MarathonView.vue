@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import router from '@/router'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAnswerStoreExam } from '@/stores/answerStoreExam'
+import { checkAnswerQuestion } from '@/api/ticketsTest'
 
 interface Question {
   img: string
@@ -28,6 +27,7 @@ const formattedTime = computed(() => {
   const seconds = timeLeft.value % 60
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 })
+
 const startTimer = () => {
   intervalId.value = setInterval(() => {
     if (timeLeft.value >= 0) {
@@ -38,36 +38,33 @@ const startTimer = () => {
   }, 1000)
 }
 
-const route = useRoute()
+interface ResultItem {
+  ans_id: number
+  ans_correct: boolean
+  ans_choice: string
+}
+
 const ticket = ref<Ticket | null>(null)
 const currentQuestionIndex = ref(0)
 const showHelpMessage = ref(false)
 const spammStop = ref(false)
 const loadedImages = ref<Record<string, HTMLImageElement>>({})
-let accessNextQuest = false
+const accessNextQuest = ref(false)
 const buttonNextQuest = ref('Следующий вопрос')
-const answerStore = useAnswerStoreExam()
+const resultData = ref<ResultItem[]>([])
 
 const fetchTickets = async () => {
-  answerStore.clearAnswers()
-  answerStore.updateTicket(0)
-  try {
-    const response = await fetch(`http://localhost:5000/get_marathon`)
-    if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`)
-    const data = await response.json()
-    ticket.value = data
+  const response = await fetch(`http://localhost:5000/get_marathon`)
+  if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`)
+  const data = await response.json()
+  ticket.value = data
 
-    ticket.value?.questions.forEach((question) => {
-      question.answers = question.answers.map((answer) => ({
-        answerText: answer,
-      }))
-    })
-    // console.log(ticket.value?.questions)
-    // await preloadImages(ticket.value?.questions)
-  } catch (err) {
-    console.error(err)
-  } finally {
-  }
+  ticket.value?.questions.forEach((question) => {
+    question.answers = question.answers.map((answer) => ({
+      answerText: answer,
+    }))
+  })
+  // await preloadImages(ticket.value?.questions)
 }
 
 const preloadImages = async (questions: Question[]) => {
@@ -101,33 +98,20 @@ const handleCheckAnswer = async (
   },
 ) => {
   spammStop.value = true
-  accessNextQuest = true
-  try {
-    const response = await fetch(`http://localhost:5000/ticket/check_answer/${Cur_question.id}`)
-    if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`)
-
-    const data = await response.json()
-    const correctAnswer = data.correct_ans
-    Cur_question.explanation = data.explanation
-
-    Cur_question.answers.forEach((ans) => {
-      if (ans.answerText === correctAnswer) {
-        ans.isCorrect = true
-      }
+  accessNextQuest.value = true
+  if (!(await checkAnswerQuestion(answer, Cur_question))) {
+    resultData.value.push({
+      ans_id: Cur_question.id,
+      ans_correct: false,
+      ans_choice: answer.answerText,
     })
-
-    // Проверяем, правильный ли выбранный ответ
-    if (answer.answerText === correctAnswer) {
-      answerStore.addAnswer(Cur_question.id, true, answer.answerText)
-      showHelpMessage.value = false
-    } else {
-      answerStore.addAnswer(Cur_question.id, false, answer.answerText)
-      answer.isChoice = true
-      showHelpMessage.value = true
-    }
-    // await nextQuestion()
-  } catch (err) {
-    console.error('Ошибка запроса:', err)
+    showHelpMessage.value = true
+  } else {
+    resultData.value.push({
+      ans_id: Cur_question.id,
+      ans_correct: true,
+      ans_choice: answer.answerText,
+    })
   }
 }
 
@@ -139,15 +123,21 @@ const nextQuestion = () => {
   if (spammStop.value == false) return
   spammStop.value = false
   if (buttonNextQuest.value === 'Закончить тест') {
-    answerStore.updateTicket(1)
-    answerStore.updateTimeLeft(timeStart - timeLeft.value)
-    router.push('/resultsExam')
+    router.push({
+      name: 'resultPage',
+      query: {
+        answers: JSON.stringify(resultData.value),
+        name: `Марафон`,
+        page: '/marathon',
+      },
+    })
+    // timeLeft.value времени прошло
     return
   }
   if (ticket.value && currentQuestionIndex.value < ticket.value.questions.length - 1) {
     showHelpMessage.value = false
     currentQuestionIndex.value++
-    accessNextQuest = false
+    accessNextQuest.value = false
   }
   if (currentQuestionIndex.value == ticket.value.questions.length - 1) {
     buttonNextQuest.value = 'Закончить тест'
@@ -165,9 +155,11 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <h1 class="tickets-number">Марафон из 800 вопросов</h1>
   <div class="form-container" v-if="ticket && currentQuestion">
-    <div class="timer" style="font-size: 18px; color: green">Время прошло: {{ formattedTime }}</div>
+    <h1 class="tickets-number">Марафон из 800 вопросов</h1>
+    <div class="timer" style="font-size: 18px; color: green">
+      Времени прошло: {{ formattedTime }}
+    </div>
 
     <div class="container">
       <h2>Вопрос №{{ currentQuestion.questionId }}</h2>
@@ -221,9 +213,16 @@ onUnmounted(() => {
   text-align: center;
 }
 
+ul,
+li {
+  padding: 0;
+  margin: 0;
+}
+
 li {
   list-style: none;
 }
+
 .container {
   display: block;
   margin: 0 auto;

@@ -3,12 +3,15 @@ import { useRouter } from 'vue-router'
 import { onMounted, ref } from 'vue'
 import Cookies from 'js-cookie'
 import { useAuthStore } from '@/stores/authStore'
-import { useAnswerStore } from '@/stores/answerStore'
-import { useAnswerStoreExam } from '@/stores/answerStoreExam'
+
+interface ResultItem {
+  ans_id: number
+  ans_correct: boolean
+  ans_choice: string
+}
 
 const authStore = useAuthStore()
-const answerStore = useAnswerStore()
-const answerStoreExam = useAnswerStoreExam()
+const resultData = ref<ResultItem[]>([])
 const router = useRouter()
 const seeTicket = ref(false)
 const seeExam = ref(false)
@@ -17,9 +20,6 @@ const tickets = ref([])
 const ticketsExam = ref([])
 
 const toggleTicket = async (id: number) => {
-  answerStore.clearAnswers()
-  answerStore.updateTicket(0)
-
   const token = Cookies.get('authToken')
 
   if (!token) {
@@ -41,18 +41,25 @@ const toggleTicket = async (id: number) => {
     const data = await response.json()
     data.message.map(
       (item: { ans_id: number; ans_correct: boolean; ans_choice: string }, index: number) => {
-        answerStore.addAnswer(index + 1, item.ans_correct, item.ans_choice)
+        resultData.value.push({
+          ans_id: index + 1,
+          ans_correct: item.ans_correct,
+          ans_choice: item.ans_choice,
+        })
       },
     )
-    answerStore.updateTicket(id)
-    router.push('/results')
+    router.push({
+      name: 'resultPage',
+      query: {
+        answers: JSON.stringify(resultData.value),
+        name: `Результаты билета № ${id}`,
+        page: '/profile',
+      },
+    })
   } catch {}
 }
 
 const toggleTicketExam = async (id: number) => {
-  answerStoreExam.clearAnswers()
-  answerStoreExam.updateTicket(0)
-
   const token = Cookies.get('authToken')
 
   if (!token) {
@@ -74,11 +81,21 @@ const toggleTicketExam = async (id: number) => {
     const data = await response.json()
     data.message.map(
       (item: { ans_id: number; ans_correct: boolean; ans_choice: string }, index: number) => {
-        answerStoreExam.addAnswer(index + 1, item.ans_correct, item.ans_choice)
+        resultData.value.push({
+          ans_id: index + 1,
+          ans_correct: item.ans_correct,
+          ans_choice: item.ans_choice,
+        })
       },
     )
-    answerStoreExam.updateTicket(2)
-    router.push('/resultsExam')
+    router.push({
+      name: 'resultPage',
+      query: {
+        answers: JSON.stringify(resultData.value),
+        name: `Экзаменационный билет`,
+        page: '/profile',
+      },
+    })
   } catch {}
 }
 
@@ -186,7 +203,7 @@ onMounted(getProfile)
     >
       <li class="me-2">
         <button
-          class="flex justify-center text-center gap-1 h-6 pt-1 p-4 rounded-t-lg"
+          class="flex justify-center text-center gap-1 h-10 pt-1 p-4 rounded-t-lg"
           @click="changeShowTicket(1)"
           :class="
             seeTicket
@@ -194,23 +211,12 @@ onMounted(getProfile)
               : 'hover:text-gray-600 hover:bg-gray-600 dark:hover:text-gray-300'
           "
         >
-          <svg
-            class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 18 20"
-          >
-            <path
-              d="M16 1h-3.278A1.992 1.992 0 0 0 11 0H7a1.993 1.993 0 0 0-1.722 1H2a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2Zm-3 14H5a1 1 0 0 1 0-2h8a1 1 0 0 1 0 2Zm0-4H5a1 1 0 0 1 0-2h8a1 1 0 1 1 0 2Zm0-5H5a1 1 0 0 1 0-2h2V2h4v2h2a1 1 0 1 1 0 2Z"
-            />
-          </svg>
           Билеты
         </button>
       </li>
       <li class="me-2">
         <button
-          class="flex justify-center text-center gap-1 h-6 pt-1 p-4 rounded-t-lg"
+          class="flex justify-center text-center gap-1 h-10 pt-1 p-4 rounded-t-lg"
           @click="changeShowTicket(2)"
           :class="
             seeExam
@@ -218,17 +224,6 @@ onMounted(getProfile)
               : 'hover:text-gray-600 hover:bg-gray-600 dark:hover:text-gray-300'
           "
         >
-          <svg
-            class="w-4 h-4 me-2 text-gray-400 group-hover:text-gray-500 dark:text-gray-500 dark:group-hover:text-gray-300"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              d="M5 11.424V1a1 1 0 1 0-2 0v10.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.228 3.228 0 0 0 0-6.152ZM19.25 14.5A3.243 3.243 0 0 0 17 11.424V1a1 1 0 0 0-2 0v10.424a3.227 3.227 0 0 0 0 6.152V19a1 1 0 1 0 2 0v-1.424a3.243 3.243 0 0 0 2.25-3.076Zm-6-9A3.243 3.243 0 0 0 11 2.424V1a1 1 0 0 0-2 0v1.424a3.228 3.228 0 0 0 0 6.152V19a1 1 0 1 0 2 0V8.576A3.243 3.243 0 0 0 13.25 5.5Z"
-            />
-          </svg>
           Экзамен
         </button>
       </li>

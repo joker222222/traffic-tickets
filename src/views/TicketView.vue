@@ -2,7 +2,7 @@
 import router from '@/router'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAnswerStore } from '@/stores/answerStore'
+import { getOneTicket, checkAnswerQuestion, updateAnswersTicket } from '@/api/ticketsTest'
 
 interface Question {
   img: string
@@ -14,11 +14,20 @@ interface Question {
   helpAnswer: string
 }
 
-/* https://github.com/etspring/pdd_russia/blob/master/questions/A_B/tickets/%D0%91%D0%B8%D0%BB%D0%B5%D1%82%2040.json */
-
 interface Ticket {
   id: number
   questions: Question[]
+}
+
+interface Name {
+  name: string
+  id: number
+}
+
+interface ResultItem {
+  ans_id: number
+  ans_correct: boolean
+  ans_choice: string
 }
 
 const route = useRoute()
@@ -26,35 +35,17 @@ const ticket = ref<Ticket | null>(null)
 const currentQuestionIndex = ref(0)
 const showHelpMessage = ref(false)
 const loadedImages = ref<Record<string, HTMLImageElement>>({})
-let accessNextQuest = false
+const accessNextQuest = ref(false)
 const buttonNextQuest = ref('Следующий вопрос')
-const answerStore = useAnswerStore()
 const spammStop = ref(false)
+const resultData = ref<ResultItem[]>([])
+const name = ref<Name>([])
 
-const fetchTickets = async () => {
-  answerStore.clearAnswers()
-  try {
-    const response = await fetch(`http://localhost:5000/ticket/${Number(route.params.id)}`)
-    if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`)
-    answerStore.updateTicket(Number(route.params.id))
-    console.log(answerStore.ticket)
-    const data = await response.json()
-    ticket.value = data.answer
-
-    // Обработка правильных ответов
-    ticket.value?.questions.forEach((question) => {
-      question.answers = question.answers.map((answer) => ({
-        answerText: answer,
-        isCorrect: false, // Изначально все ответы неправильные
-        isChoice: false, // Изначально выбора нет
-      }))
-    })
-
-    await preloadImages(ticket.value?.questions)
-  } catch (err) {
-    console.error(err)
-  } finally {
-  }
+const getTicket = async () => {
+  ticket.value = await getOneTicket(Number(route.params.id))
+  name.value.name = `Результаты билета № ${Number(route.params.id)}`
+  name.value.id = Number(route.params.id)
+  await preloadImages(ticket.value?.questions)
 }
 
 const preloadImages = async (questions: Question[]) => {
@@ -87,34 +78,21 @@ const handleCheckAnswer = async (
     }
   },
 ) => {
-  accessNextQuest = true
+  accessNextQuest.value = true
   spammStop.value = true
-  try {
-    const response = await fetch(`http://localhost:5000/ticket/check_answer/${Cur_question.id}`)
-    if (!response.ok) throw new Error(`Ошибка: ${response.statusText}`)
-
-    const data = await response.json()
-    const correctAnswer = data.correct_ans
-    Cur_question.explanation = data.explanation
-
-    Cur_question.answers.forEach((ans) => {
-      if (ans.answerText === correctAnswer) {
-        ans.isCorrect = true
-      }
+  if (!(await checkAnswerQuestion(answer, Cur_question))) {
+    resultData.value.push({
+      ans_id: Cur_question.id,
+      ans_correct: false,
+      ans_choice: answer.answerText,
     })
-
-    // Проверяем, правильный ли выбранный ответ
-    if (answer.answerText === correctAnswer) {
-      answerStore.addAnswer(Cur_question.id, true, answer.answerText)
-      showHelpMessage.value = false
-      // nextQuestion()
-    } else {
-      answerStore.addAnswer(Cur_question.id, false, answer.answerText)
-      answer.isChoice = true
-      showHelpMessage.value = true
-    }
-  } catch (err) {
-    console.error('Ошибка запроса:', err)
+    showHelpMessage.value = true
+  } else {
+    resultData.value.push({
+      ans_id: Cur_question.id,
+      ans_correct: true,
+      ans_choice: answer.answerText,
+    })
   }
 }
 
@@ -122,24 +100,32 @@ const currentQuestion = computed(() =>
   ticket.value ? ticket.value.questions[currentQuestionIndex.value] : null,
 )
 
-const nextQuestion = () => {
+const nextQuestion = async () => {
   if (spammStop.value == false) return
   spammStop.value = false
   if (buttonNextQuest.value === 'Закончить тест') {
-    router.push('/results')
+    await updateAnswersTicket(name.value.id, resultData.value)
+    router.push({
+      name: 'resultPage',
+      query: {
+        answers: JSON.stringify(resultData.value),
+        name: name.value.name,
+        page: '/testing',
+      },
+    })
     return
   }
   if (ticket.value && currentQuestionIndex.value < ticket.value.questions.length - 1) {
     showHelpMessage.value = false
     currentQuestionIndex.value++
-    accessNextQuest = false
+    accessNextQuest.value = false
   }
   if (currentQuestionIndex.value == ticket.value.questions.length - 1) {
     buttonNextQuest.value = 'Закончить тест'
   }
 }
 
-onMounted(fetchTickets)
+onMounted(getTicket)
 </script>
 
 <template>
@@ -197,9 +183,16 @@ onMounted(fetchTickets)
   text-align: center;
 }
 
+ul,
+li {
+  padding: 0;
+  margin: 0;
+}
+
 li {
   list-style: none;
 }
+
 .container {
   display: block;
   margin: 0 auto;
@@ -240,9 +233,6 @@ button {
   font-size: 1rem;
 }
 
-ul {
-  padding: 0;
-}
 .answer-correct {
   background-color: green;
 }
