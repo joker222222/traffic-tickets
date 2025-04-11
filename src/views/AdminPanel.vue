@@ -74,21 +74,6 @@ onMounted(getProfile)
             <button class="change-role" @click="changeRole(user.id)">Изменить роль</button>
           </div>
         </div>
-
-        <!-- <div class="action-buttons flex justify-center gap-1">
-          <button
-            class="bg-transparent hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded"
-            @click="updateProfile"
-          >
-            Сохранить изменения
-          </button>
-          <button
-            class="bg-transparent hover:bg-green-500 text-green-700 font-semibold hover:text-white py-2 px-4 border border-green-500 hover:border-transparent rounded"
-            @click="cancelUpdateProfile"
-          >
-            Отменить
-          </button>
-        </div> -->
       </li>
     </ul>
   </div>
