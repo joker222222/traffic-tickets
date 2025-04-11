@@ -11,6 +11,7 @@ import RegistrationView from '@/views/RegistrationView.vue'
 import TicketView from '@/views/TicketView.vue'
 import SettingsProfile from '@/views/SettingsProfile.vue'
 import ResultPage from '@/views/ResultPage.vue'
+import AdminPage from '@/views/AdminPanel.vue'
 
 const routes = [
   { path: '/', name: 'home', component: MainView },
@@ -24,6 +25,7 @@ const routes = [
   { path: '/ticket/:id', name: 'ticket', component: TicketView, props: true },
   { path: '/settings-profile', name: 'settings-profile', component: SettingsProfile },
   { path: '/resultPage', name: 'resultPage', component: ResultPage },
+  { path: '/admin', name: 'adminPage', component: AdminPage },
 ]
 
 const router = createRouter({

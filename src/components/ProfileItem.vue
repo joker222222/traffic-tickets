@@ -99,9 +99,13 @@ const toggleTicketExam = async (id: number) => {
   } catch {}
 }
 
-const logout = () => {
-  authStore.removeAuthToken()
-  router.push('/sign-in')
+// const logout = () => {
+//   authStore.removeAuthToken()
+//   router.push('/sign-in')
+// }
+
+const changeSettings = () => {
+  router.push('/settings-profile')
 }
 
 const userName = ref('')
@@ -274,7 +278,7 @@ onMounted(getProfile)
     <div class="settings">
       <img
         class="img-settings"
-        @click="logout"
+        @click="changeSettings"
         src="https://static-00.iconduck.com/assets.00/settings-icon-2048x2046-cw28eevx.png"
       />
     </div>
@@ -302,15 +306,16 @@ onMounted(getProfile)
 }
 
 .avatar-img {
-  width: 124px;
-  height: 124px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ddd;
 }
 
 .settings {
   width: 40px;
   height: 40px;
-  position: relative;
 }
 
 .settings img {
@@ -370,5 +375,10 @@ onMounted(getProfile)
 .incorrect {
   color: white;
   background-color: rgb(172, 0, 0);
+}
+ul,
+li {
+  padding: 0;
+  margin: 0;
 }
 </style>
