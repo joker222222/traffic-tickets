@@ -7,6 +7,7 @@ import Cookies from 'js-cookie'
 const authStore = useAuthStore()
 
 const users = ref([])
+const noAdmin = ref(false)
 
 const getProfile = async () => {
   const token = Cookies.get('authToken')
@@ -29,27 +30,27 @@ const getProfile = async () => {
     const data = await response.json()
     users.value = data.data
   } catch (error) {
-    console.error('Ошибка:', error)
-    authStore.removeAuthToken()
-    router.push('/profile')
+    if (!Cookies.get('authToken')) {
+      console.error('Ошибка:', error)
+      authStore.removeAuthToken()
+      router.push('/profile')
+    }
+    noAdmin.value = true
   }
 }
 
 const changeRole = async (userId: number) => {
-  try {
-    const response = await fetch(`http://localhost:5000/admin-change-role/${userId}/${2}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: Cookies.get('authToken'),
-        'Content-Type': 'application/json',
-      },
-    })
+  const response = await fetch(`http://localhost:5000/admin-change-role/${userId}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: Cookies.get('authToken'),
+      'Content-Type': 'application/json',
+    },
+  })
 
-    if (!response.ok) throw new Error('Ошибка при запросе на сервер')
-  } catch (error) {
-    console.error('Ошибка:', error)
-    authStore.removeAuthToken()
-    router.push('/profile')
+  if (!response.ok) {
+    noAdmin.value = true
+    users.value = []
   }
   getProfile()
 }
@@ -59,23 +60,28 @@ onMounted(getProfile)
 <template>
   <div class="form-container form-container-changer">
     <h1 class="border-b-1">Админ панель</h1>
-    <ul>
-      <li v-for="(user, index) in users" v-bind:key="index" class="flex justify-center gap-x-4">
-        <img class="avatar-img" :src="user.avatar" alt="avatar" />
+    <div v-if="!noAdmin">
+      <ul>
+        <li v-for="(user, index) in users" v-bind:key="index" class="flex justify-center gap-x-4">
+          <img class="avatar-img" :src="user.avatar" alt="avatar" />
 
-        <div class="flex flex-col justify-center items-start">
-          <label>Имя: {{ user.name }}</label>
+          <div class="flex flex-col justify-center items-start">
+            <label>Имя: {{ user.name }}</label>
 
-          <label>Почта: {{ user.email }}</label>
-          <label>Пароль: {{ user.password }}</label>
+            <label>Почта: {{ user.email }}</label>
+            <label>Пароль: {{ user.password }}</label>
 
-          <div>
-            <label>Роль: {{ user.role }}</label>
-            <button class="change-role" @click="changeRole(user.id)">Изменить роль</button>
+            <div>
+              <label>Роль: {{ user.role }}</label>
+              <button class="change-role" @click="changeRole(user.id)">Изменить роль</button>
+            </div>
           </div>
-        </div>
-      </li>
-    </ul>
+        </li>
+      </ul>
+    </div>
+    <div v-if="noAdmin">
+      <h1>Данный пользователь не обладает правами администратора</h1>
+    </div>
   </div>
 </template>
 

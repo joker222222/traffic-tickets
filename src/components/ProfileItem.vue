@@ -99,10 +99,10 @@ const toggleTicketExam = async (id: number) => {
   } catch {}
 }
 
-// const logout = () => {
-//   authStore.removeAuthToken()
-//   router.push('/sign-in')
-// }
+const logout = () => {
+  authStore.removeAuthToken()
+  router.push('/sign-in')
+}
 
 const changeSettings = () => {
   router.push('/settings-profile')
@@ -281,6 +281,11 @@ onMounted(getProfile)
         @click="changeSettings"
         src="https://static-00.iconduck.com/assets.00/settings-icon-2048x2046-cw28eevx.png"
       />
+      <img
+        class="img-exit"
+        @click="logout"
+        src="https://img.icons8.com/?size=256w&id=2445&format=png"
+      />
     </div>
   </div>
 </template>
@@ -333,6 +338,11 @@ onMounted(getProfile)
 
 .img-settings:hover {
   transform: rotate(720deg);
+}
+
+.img-exit {
+  left: 20px;
+  right: 20px;
 }
 
 .ticket {
