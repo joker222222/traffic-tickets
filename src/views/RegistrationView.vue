@@ -28,7 +28,7 @@ const handleSubmit = async (event: Event) => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5000/sign-up`, {
+    const response = await fetch(`http://localhost:5000/user/sign-up`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

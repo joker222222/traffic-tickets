@@ -26,7 +26,7 @@ const getCookies = async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5000/token_check`, {
+    const response = await fetch(`http://localhost:5000/user/token_check`, {
       method: 'POST',
       headers: {
         Authorization: token,

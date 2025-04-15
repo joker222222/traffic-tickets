@@ -24,7 +24,7 @@ const getProfile = async () => {
   }
 
   try {
-    const response = await fetch(`http://localhost:5000/profile`, {
+    const response = await fetch(`http://localhost:5000/user/profile`, {
       method: 'GET',
       headers: {
         Authorization: token,
@@ -73,7 +73,7 @@ const cancelUpdateProfile = () => {
 }
 
 const updateProfile = async () => {
-  await fetch(`http://localhost:5000/profile-change`, {
+  await fetch(`http://localhost:5000/user/profile-change`, {
     method: 'PUT',
     headers: {
       Authorization: Cookies.get('authToken'),
